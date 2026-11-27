@@ -34,11 +34,17 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 .tp input{width:100%;font-size:11px;padding:2px 3px;margin-top:2px}
 .tp .x{position:absolute;top:0;right:0;padding:0 5px;background:#e5484d;border-radius:50%;font-size:11px}
 #wrap{flex:1;overflow:auto;padding:14px}
-.stage{width:max-content;min-width:660px;margin:auto;padding:20px 40px;border-radius:12px;position:relative}
+#stageSpace{position:relative;margin:0 auto}
+.stage{width:max-content;min-width:660px;margin:0;padding:20px 40px;border-radius:12px;position:absolute;left:0;top:0;transform-origin:top left}
+.zoom-controls{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap}
+.zoom-controls input[type=range]{width:120px;max-width:120px}
+.zoom-controls button{padding:5px 9px}
+#zoomValue{min-width:48px;text-align:center;font-size:12px;color:var(--mu);font-variant-numeric:tabular-nums}
 .ttl{text-align:center;margin:0 0 14px}
-.body{position:relative}
-.cols{display:flex;justify-content:center;gap:calc(var(--g)*3);margin-bottom:110px}
-.rv .cols{margin:110px 0 0}
+.body{position:relative;display:flex;flex-direction:column}.rv .body{flex-direction:column-reverse}
+.cols{display:flex;justify-content:center;gap:calc(var(--g)*3)}
+.band{position:relative;margin:22px 0;min-width:100%;border:1px dashed color-mix(in srgb,var(--st) 38%,transparent);border-radius:10px;background:rgba(127,127,127,.035)}
+.band::before{content:'KHU VỰC PHÍA TRƯỚC LỚP';position:absolute;left:10px;top:4px;font-size:9px;letter-spacing:.08em;opacity:.42;pointer-events:none}
 .col{display:flex;flex-direction:column;gap:var(--g)}
 .seg{display:flex;align-items:stretch;gap:4px}.rv .seg{flex-direction:row-reverse}
 .rows{display:flex;flex-direction:column;gap:var(--g)}
@@ -53,10 +59,13 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);color:#fff;text-align:center;padding:2px;font-size:12px;opacity:0;transition:.15s;border-radius:0 0 5px 5px;word-break:break-word}
 .seat:hover .nm,.tap .nm{opacity:1}
 .non .nm{position:static;opacity:1;background:none;color:inherit;margin-top:3px;font-size:13px;font-weight:600;line-height:1.2;padding:0}
-.exp .rm,.exp .hint{display:none!important}
+.exp .rm,.exp .hint,.exp .rz{display:none!important}
 .mv{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;user-select:none;z-index:3}
-.tdesk{padding:12px 34px;font-weight:700;font-size:18px;white-space:nowrap}
-.door{width:64px;height:88px;border:3px solid var(--st);border-radius:8px 8px 0 0;background:var(--dr);color:var(--dt);display:grid;place-items:center;font-size:13px;font-weight:700}
+.bi{position:absolute;cursor:grab;touch-action:none;user-select:none;z-index:3;display:grid;place-items:center;font-weight:700;white-space:nowrap;text-align:center}
+.tdesk{padding:0}
+.podium{border:3px solid var(--st);border-radius:6px;background:var(--dr);color:var(--dt);box-shadow:0 6px 0 rgba(0,0,0,.22)}
+.rz{position:absolute;right:-7px;bottom:-7px;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;cursor:nwse-resize;z-index:4;opacity:.25}.bi:hover .rz{opacity:1}
+.door{border:3px solid var(--st);border-radius:8px 8px 0 0;background:var(--dr);color:var(--dt)}
 .door::after{content:"";position:absolute;right:8px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--st)}
 .txt{font-weight:700;white-space:pre}
 .s-none{--dt:var(--st);--dr:transparent}.s-none .desk{border:2px solid var(--st)}
@@ -88,7 +97,7 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 <div class="row"><button class="g" id="rstL">Đặt lại bố cục</button></div>
 </details>
 <details open><summary>👥 Chia tổ</summary>
-<p class="mu">Hàng 1 là hàng gần bàn giáo viên. Chọn dãy và khoảng hàng cho mỗi tổ, dấu ngoặc nhọn sẽ tự hiện.</p>
+<p class="mu">Mặc định: Tổ 1–2 ở phía cửa (dãy 1), Tổ 3–4 ở phía bàn giáo viên (dãy 2). Hàng 1 gần phía bàn giáo viên.</p>
 <div id="grpList"></div>
 <div class="row"><button class="g" id="addG">+ Thêm tổ</button><button class="g" id="rstG">Tổ mặc định</button></div>
 </details>
@@ -99,8 +108,8 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 <label>Tên lớp <input data-b="title"></label>
 <label>Cỡ tên lớp <input type="range" data-b="tsize" min="14" max="64"></label>
 <label>Chữ bàn giáo viên <input data-b="tlabel"></label>
-<div class="row"><button class="g" id="addT">+ Khung chữ</button><button class="g" id="addD">+ Cửa</button></div>
-<p class="mu">Kéo bàn GV, cửa, khung chữ để đặt vị trí. Nhấp đúp để sửa/xóa.</p>
+<div class="row"><button class="g" id="addT">+ Khung chữ</button><button class="g" id="addD">+ Cửa</button><button class="g" id="addP">+ Bục giảng</button></div>
+<p class="mu">Vùng phía trước lớp luôn được chừa riêng cho cửa, bàn giáo viên và bục giảng. Kéo để đổi vị trí; kéo ô vuông góc dưới phải để đổi kích thước. Nhấp đúp để đổi tên/xóa (cửa cuối cùng luôn được giữ lại).</p>
 </details>
 <details><summary>🎨 Giao diện</summary>
 <label>Kiểu bàn ghế <select data-b="style"><option value="none">Nghiêm túc (trắng đen)</option><option value="color">Màu theo chủ đề</option><option value="wood">Gỗ</option><option value="pastel">Pastel dễ thương</option><option value="blue">Xanh học đường</option><option value="green">Bảng xanh</option><option value="neon">Neon</option></select></label>
@@ -118,10 +127,10 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 </aside>
 <main>
 <div id="trayw">
-<div id="trayh"><label class="btn">＋ Tải ảnh lên<input type="file" id="file" multiple accept="image/*" hidden></label><button class="g" id="auto">Tự xếp vào chỗ trống</button><span class="mu">Bấm ảnh rồi bấm chỗ ngồi, hoặc kéo thả. Kéo ảnh về khung này để bỏ khỏi chỗ.</span></div>
+<div id="trayh"><label class="btn">＋ Tải ảnh lên<input type="file" id="file" multiple accept="image/*" hidden></label><button class="g" id="auto">Tự xếp vào chỗ trống</button><span class="mu">Bấm ảnh rồi bấm chỗ ngồi, hoặc kéo thả. Kéo ảnh về khung này để bỏ khỏi chỗ.</span><div class="zoom-controls" aria-label="Điều khiển thu phóng sơ đồ"><button class="g" id="zoomOut" title="Thu nhỏ">−</button><input id="zoomRange" type="range" min="100" max="250" step="10" value="100" aria-label="Mức thu phóng"><span id="zoomValue">100%</span><button class="g" id="zoomIn" title="Phóng to">＋</button><button class="g" id="zoomFit">Vừa khung</button></div></div>
 <div id="tray"></div>
 </div>
-<div id="wrap"><div class="stage" id="stage"></div></div>
+<div id="wrap"><div id="stageSpace"><div class="stage" id="stage"></div></div></div>
 </main>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -130,9 +139,27 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
 const FONTS={sans:'system-ui,"Segoe UI",Roboto,sans-serif',serif:'Georgia,"Times New Roman",serif',hand:'"Comic Sans MS","Segoe Print",cursive',mono:'ui-monospace,Consolas,monospace'};
+// Dãy 1 nằm phía cửa; dãy 2 nằm phía bàn giáo viên.
 const defG=()=>[{n:'Tổ 1',c:0,a:1,b:3},{n:'Tổ 2',c:0,a:4,b:7},{n:'Tổ 3',c:1,a:1,b:3},{n:'Tổ 4',c:1,a:4,b:7}];
-const def=()=>({theme:'dark',cols:[{n:7},{n:7}],per:4,ratio:'3/4',w:96,names:true,view:0,style:'color',title:'Sơ đồ lớp',showTitle:true,tsize:28,font:'sans',accent:'#4f8cff',bg:'auto',bgs:'solid',txt:'auto',gap:14,groups:defG(),teacher:{x:.85,y:.94},tlabel:'Giáo viên',doors:[{x:.05,y:.94}],texts:[],photos:[],seat:{}});
+const def=()=>({theme:'dark',cols:[{n:7},{n:7}],per:4,ratio:'3/4',w:96,names:true,view:0,style:'color',title:'Sơ đồ lớp',showTitle:true,tsize:28,font:'sans',accent:'#4f8cff',bg:'auto',bgs:'solid',txt:'auto',gap:14,groups:defG(),v:3,teacher:{x:.78,y:.5,w:170,h:62},tlabel:'Giáo viên',doors:[{x:.02,y:.5,w:64,h:88,l:'Cửa ra vào'}],pods:[{x:.40,y:.5,w:150,h:56,l:'Bục giảng'}],texts:[],photos:[],seat:{}});
 let S=def(),sel=null,vis=new Set();
+// Mức 100% luôn là mức vừa khung: thu nhỏ tối đa đến khi thấy toàn bộ lớp.
+let zoomLevel=1,renderScale=1;
+function updateZoom(){
+ const wrap=$('#wrap'),space=$('#stageSpace'),st=$('#stage');
+ if(!wrap||!space||!st)return;
+ const w=st.offsetWidth||660,h=st.offsetHeight||300;
+ const aw=Math.max(1,wrap.clientWidth-28),ah=Math.max(1,wrap.clientHeight-28);
+ const fit=Math.min(1,aw/w,ah/h);
+ renderScale=fit*zoomLevel;
+ st.style.transform=`scale(${renderScale})`;
+ space.style.width=Math.ceil(w*renderScale)+'px';
+ space.style.height=Math.ceil(h*renderScale)+'px';
+ $('#zoomRange').value=Math.round(zoomLevel*100);
+ $('#zoomValue').textContent=Math.round(zoomLevel*100)+'%';
+ $('#zoomOut').disabled=zoomLevel<=1;
+ $('#zoomIn').disabled=zoomLevel>=2.5;
+}
 /* lưu trữ IndexedDB theo thiết bị */
 const DB=()=>new Promise(r=>{try{const q=indexedDB.open('lopmap',1);q.onupgradeneeded=()=>q.result.createObjectStore('k');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
 async function load(){try{const d=await DB();return await new Promise(r=>{const g=d.transaction('k').objectStore('k').get('s');g.onsuccess=()=>r(g.result);g.onerror=()=>r()})}catch(e){}}
@@ -154,13 +181,17 @@ function draw(){
   return `<div class="col">`+segs.map(([nm,a,b])=>{let rows='';
    for(let k=0;k<=b-a;k++){const r=rev?a+k:b-k;let ss='';for(let s=0;s<S.per;s++)ss+=seatH(ci,r,s);rows+=`<div class="desk">${ss}</div>`}
    return `<div class="seg"><div class="rows">${rows}</div><div class="br">${nm?`<svg viewBox="0 0 10 100" preserveAspectRatio="none" width="14"><path d="${P}" fill="none" stroke="${tc}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><b>${esc(nm)}</b>`:''}</div></div>`}).join('')+`</div>`};
- const ord=S.cols.map((_,i)=>i);if(!rev)ord.reverse();
- const px=x=>(rev?1-x:x)*100,mv=(k,i,o,cls,inner,st='')=>`<div class="mv ${cls}" data-k="${k}" data-i="${i}" style="left:${px(o.x)}%;top:${px(o.y)}%;${st}">${inner}</div>`;
- const movers=mv('t',0,S.teacher,'desk tdesk',esc(S.tlabel))+S.doors.map((d,i)=>mv('d',i,d,'door','Cửa')).join('')+S.texts.map((t,i)=>mv('x',i,t,'txt',esc(t.t),`font-size:${t.s}px`)).join('');
+ const ord=S.cols.map((_,i)=>i);if(rev)ord.reverse();
+ const bx=x=>rev?1-x:x;
+ const items=[['t',0,S.teacher,'desk tdesk',esc(S.tlabel)],...S.doors.map((o,i)=>['d',i,o,'door',esc(o.l||'Cửa')]),...S.pods.map((o,i)=>['p',i,o,'podium',esc(o.l||'Bục giảng')])];
+ const bh=Math.max(112,...items.map(a=>a[2].h))+28;
+ const band=`<div class="band" style="height:${bh}px">`+items.map(([k,i,o,c,t])=>`<div class="bi ${c}" data-k="${k}" data-i="${i}" style="width:${o.w}px;height:${o.h}px;left:calc((100% - ${o.w}px)*${bx(o.x)});top:calc((100% - ${o.h}px)*${bx(o.y)});font-size:${Math.round(Math.max(11,Math.min(22,o.h*.3)))}px">${t}<i class="rz"></i></div>`).join('')+'</div>';
+ const texts=S.texts.map((t,i)=>`<div class="mv txt" data-k="x" data-i="${i}" style="left:${bx(t.x)*100}%;top:${bx(t.y)*100}%;font-size:${t.s}px">${esc(t.t)}</div>`).join('');
  const st=$('#stage');st.className='stage s-'+S.style+(S.names?' non':'')+(rev?' rv':'');
  const bi={solid:'',grid:'linear-gradient(rgba(136,136,136,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(136,136,136,.2) 1px,transparent 1px)',dots:'radial-gradient(rgba(136,136,136,.4) 1.5px,transparent 1.6px)',grad:`linear-gradient(135deg,${bg},${S.accent}55)`}[S.bgs];
  st.style.cssText=`--w:${S.w}px;--r:${S.ratio};--g:${S.gap}px;--st:${tc};background-color:${bg};color:${tc};font-family:${FONTS[S.font]};`+(bi?`background-image:${bi};`:'')+(S.bgs=='grid'?'background-size:24px 24px;':S.bgs=='dots'?'background-size:20px 20px;':'');
- st.innerHTML=(S.showTitle&&S.title?`<h2 class="ttl" style="font-size:${S.tsize}px">${esc(S.title)}</h2>`:'')+`<div class="body"><div class="cols">${ord.map(colH).join('')}</div>${movers}</div>`;
+ st.innerHTML=(S.showTitle&&S.title?`<h2 class="ttl" style="font-size:${S.tsize}px">${esc(S.title)}</h2>`:'')+`<div class="body"><div class="cols">${ord.map(colH).join('')}</div>${band}${texts}</div>`;
+ updateZoom();
 }
 function tray(){
  $('#tray').innerHTML=S.photos.length?S.photos.map(p=>`<div class="tp${p.id==sel?' sel':''}${vis.has(p.id)?' pl':''}" data-id="${p.id}" draggable="true"><div class="tph" style="background-image:url(${p.src})"></div><input value="${esc(p.name)}" data-id="${p.id}"><button class="x" data-id="${p.id}">✕</button></div>`).join(''):'<p class="mu">Chưa có ảnh. Bấm “Tải ảnh lên” hoặc kéo thả ảnh vào đây.</p>';
@@ -186,7 +217,8 @@ $('#addG').onclick=()=>{S.groups.push({n:'Tổ '+(S.groups.length+1),c:0,a:1,b:1
 $('#rstG').onclick=()=>{S.groups=defG();lists();all()};
 $('#rstL').onclick=()=>{if(confirm('Đặt lại bố cục về mặc định? (ảnh được giữ lại)')){S=Object.assign(def(),{photos:S.photos,theme:S.theme});sync();lists();all()}};
 $('#addT').onclick=()=>{S.texts.push({t:'Nội dung',x:.5,y:.04,s:22});all()};
-$('#addD').onclick=()=>{S.doors.push({x:.15,y:.94});all()};
+$('#addD').onclick=()=>{S.doors.push({x:.02,y:clamp(.18+S.doors.length*.16,0,1),w:64,h:88,l:'Cửa ra vào'});all()};
+$('#addP').onclick=()=>{S.pods.push({x:.40,y:clamp(.5+S.pods.length*.12,0,1),w:150,h:56,l:'Bục giảng'});all()};
 $$('[data-auto]').forEach(b=>b.onclick=()=>{S[b.dataset.auto]='auto';all()});
 $('#theme').onclick=()=>{S.theme=S.theme=='dark'?'light':'dark';all()};
 $('#clrS').onclick=()=>{S.seat={};sel=null;all()};
@@ -216,22 +248,23 @@ $('#stage').onclick=e=>{const s=e.target.closest('.seat');if(!s)return;const id=
  if(e.target.closest('.rm')){delete S.seat[id];all()}
  else if(sel){place(sel,id);sel=null;draw();sel=nextFree();tray();save()}
  else if(s.classList.contains('f'))s.classList.toggle('tap')};
-$('#stage').ondblclick=e=>{const m=e.target.closest('.mv'),n=e.target.closest('.seat.f');
+$('#stage').ondblclick=e=>{const m=e.target.closest('.bi,.mv'),n=e.target.closest('.seat.f');
  if(m){const k=m.dataset.k,i=+m.dataset.i;
   if(k=='t'){const v=prompt('Tên bàn giáo viên:',S.tlabel);if(v!=null)S.tlabel=v}
-  else if(k=='d'){if(confirm('Xóa cửa này?'))S.doors.splice(i,1)}
+  else if(k=='d'||k=='p'){const L=k=='d'?S.doors:S.pods,o=L[i],v=prompt('Tên (để trống để xóa):',o.l||(k=='d'?'Cửa':'Bục giảng'));if(v!=null){if(v.trim())o.l=v.trim();else if(k=='d'&&L.length===1)alert('Sơ đồ luôn cần ít nhất một cửa ra vào.');else L.splice(i,1)}}
   else{const v=prompt('Nội dung (để trống để xóa khung):',S.texts[i].t);if(v!=null){v?S.texts[i].t=v:S.texts.splice(i,1)}}}
  else if(n){const p=pm(S.seat[n.dataset.id]),v=prompt('Sửa tên:',p.name);if(v!=null&&v.trim())p.name=v.trim()}
  else return;
  sync();all()};
 let drag;
-$('#stage').addEventListener('pointerdown',e=>{const m=e.target.closest('.mv');if(!m)return;drag={m,k:m.dataset.k,i:+m.dataset.i};m.setPointerCapture(e.pointerId);e.preventDefault()});
-addEventListener('pointermove',e=>{if(!drag)return;const b=$('.body').getBoundingClientRect();
- let x=clamp((e.clientX-b.left)/b.width,0,1),y=clamp((e.clientY-b.top)/b.height,0,1);
- drag.m.style.left=x*100+'%';drag.m.style.top=y*100+'%';
- if(S.view){x=1-x;y=1-y}
- const o=drag.k=='t'?S.teacher:drag.k=='d'?S.doors[drag.i]:S.texts[drag.i];o.x=x;o.y=y});
-addEventListener('pointerup',()=>{if(drag){drag=null;save()}});
+$('#stage').addEventListener('pointerdown',e=>{const m=e.target.closest('.bi,.mv');if(!m)return;const r=m.getBoundingClientRect(),k=m.dataset.k,i=+m.dataset.i,o=k=='t'?S.teacher:k=='d'?S.doors[i]:k=='p'?S.pods[i]:S.texts[i];const scale=Math.max(.001,renderScale);drag={m,k,i,rz:!!e.target.closest('.rz'),dx:(e.clientX-r.left)/scale,dy:(e.clientY-r.top)/scale,startX:e.clientX,startY:e.clientY,w:o?.w||0,h:o?.h||0};m.setPointerCapture(e.pointerId);e.preventDefault()});
+addEventListener('pointermove',e=>{if(!drag)return;const o=drag.k=='t'?S.teacher:drag.k=='d'?S.doors[drag.i]:drag.k=='p'?S.pods[drag.i]:S.texts[drag.i],rv=!!S.view,scale=Math.max(.001,renderScale);
+ if(!o)return;
+ if(drag.k=='x'){const b=$('.body').getBoundingClientRect(),x=clamp((e.clientX-b.left)/b.width,0,1),y=clamp((e.clientY-b.top)/b.height,0,1);drag.m.style.left=x*100+'%';drag.m.style.top=y*100+'%';o.x=rv?1-x:x;o.y=rv?1-y:y;return}
+ if(drag.rz){o.w=Math.round(clamp(drag.w+(e.clientX-drag.startX)/scale,40,700));o.h=Math.round(clamp(drag.h+(e.clientY-drag.startY)/scale,30,400));drag.m.style.width=o.w+'px';drag.m.style.height=o.h+'px';return}
+ const b=$('.band').getBoundingClientRect(),bw=b.width/scale,bh=b.height/scale,x=clamp(((e.clientX-b.left)/scale-drag.dx)/Math.max(1,bw-o.w),0,1),y=clamp(((e.clientY-b.top)/scale-drag.dy)/Math.max(1,bh-o.h),0,1);
+ drag.m.style.left=`calc((100% - ${o.w}px)*${x})`;drag.m.style.top=`calc((100% - ${o.h}px)*${y})`;o.x=rv?1-x:x;o.y=rv?1-y:y});
+addEventListener('pointerup',()=>{if(drag){const z=drag.rz;drag=null;if(z)draw();save()}});
 
 /* kéo thả */
 document.addEventListener('dragstart',e=>{const t=e.target.closest('.tp,.seat.f');if(t)e.dataTransfer.setData('text/plain',t.classList.contains('tp')?'p:'+t.dataset.id:'s:'+t.dataset.id)});
@@ -245,15 +278,20 @@ document.addEventListener('drop',e=>{const s=e.target.closest('.seat'),t=e.targe
 
 /* xuất ảnh */
 async function exp(){if(!window.html2canvas)return alert('Cần kết nối Internet lần đầu để tải thư viện xuất ảnh.');
- const f=$('#fmt').value,st=$('#stage');st.classList.add('exp');
+ const f=$('#fmt').value,st=$('#stage'),oldTransform=st.style.transform;st.classList.add('exp');st.style.transform='none';
  try{const c=await html2canvas(st,{scale:2,backgroundColor:null,useCORS:true});
-  c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(S.title||'so-do-lop')+'.'+(f=='jpeg'?'jpg':f);a.click()},'image/'+f,.95)}
- catch(e){alert('Xuất ảnh lỗi: '+e.message)}finally{st.classList.remove('exp')}}
+  c.toBlob(b=>{if(!b)return alert('Không thể tạo ảnh xuất.');const a=document.createElement('a');const url=URL.createObjectURL(b);a.href=url;a.download=(S.title||'so-do-lop')+'.'+(f=='jpeg'?'jpg':f);a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)},'image/'+f,.95)}
+ catch(e){alert('Xuất ảnh lỗi: '+e.message)}finally{st.classList.remove('exp');st.style.transform=oldTransform;updateZoom()}}
 $('#exp1').onclick=$('#exp2').onclick=exp;
+$('#zoomRange').oninput=e=>{zoomLevel=clamp(+e.target.value/100,1,2.5);updateZoom()};
+$('#zoomOut').onclick=()=>{zoomLevel=clamp(Math.round((zoomLevel-.1)*100)/100,1,2.5);updateZoom()};
+$('#zoomIn').onclick=()=>{zoomLevel=clamp(Math.round((zoomLevel+.1)*100)/100,1,2.5);updateZoom()};
+$('#zoomFit').onclick=()=>{zoomLevel=1;updateZoom()};
+addEventListener('resize',updateZoom);
 
-(async()=>{const d=await load();if(d)S=Object.assign(def(),d);
+(async()=>{const d=await load();if(d){S=Object.assign(def(),d);if(d.v!==3){const f=def();S.groups=f.groups;S.teacher=f.teacher;S.doors=f.doors;S.pods=f.pods;}S.v=3;if(!Array.isArray(S.doors)||!S.doors.length)S.doors=def().doors;if(!Array.isArray(S.pods))S.pods=def().pods}
  if(innerWidth<820)$$('details').forEach(x=>x.open=false);
- sync();lists();draw();sel=null;tray()})();
+ sync();lists();draw();sel=null;tray();updateZoom()})();
 </script>
 </body>
 </html>
