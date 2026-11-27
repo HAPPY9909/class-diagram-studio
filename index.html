@@ -43,7 +43,7 @@ input[type=range]{padding:0}input[type=color]{padding:0;width:40px;height:28px}i
 .ttl{text-align:center;margin:0 0 14px}
 .body{position:relative;display:flex;flex-direction:column}.rv .body{flex-direction:column-reverse}
 .cols{display:flex;justify-content:center;gap:calc(var(--g)*3)}
-.band{position:relative;margin:22px 0;min-width:100%;border:1px dashed color-mix(in srgb,var(--st) 38%,transparent);border-radius:10px;background:rgba(127,127,127,.035)}
+.band{position:relative;margin:22px 0;min-width:100%;border:1px dashed rgba(127,127,127,.38);border-radius:10px;background:rgba(127,127,127,.035)}
 .band::before{content:'KHU VỰC PHÍA TRƯỚC LỚP';position:absolute;left:10px;top:4px;font-size:9px;letter-spacing:.08em;opacity:.42;pointer-events:none}
 .col{display:flex;flex-direction:column;gap:var(--g)}
 .seg{display:flex;align-items:stretch;gap:4px}.rv .seg{flex-direction:row-reverse}
@@ -141,7 +141,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const FONTS={sans:'system-ui,"Segoe UI",Roboto,sans-serif',serif:'Georgia,"Times New Roman",serif',hand:'"Comic Sans MS","Segoe Print",cursive',mono:'ui-monospace,Consolas,monospace'};
 // Dãy 1 nằm phía cửa; dãy 2 nằm phía bàn giáo viên.
 const defG=()=>[{n:'Tổ 1',c:0,a:1,b:3},{n:'Tổ 2',c:0,a:4,b:7},{n:'Tổ 3',c:1,a:1,b:3},{n:'Tổ 4',c:1,a:4,b:7}];
-const def=()=>({theme:'dark',cols:[{n:7},{n:7}],per:4,ratio:'3/4',w:96,names:true,view:0,style:'color',title:'Sơ đồ lớp',showTitle:true,tsize:28,font:'sans',accent:'#4f8cff',bg:'auto',bgs:'solid',txt:'auto',gap:14,groups:defG(),v:3,teacher:{x:.78,y:.5,w:170,h:62},tlabel:'Giáo viên',doors:[{x:.02,y:.5,w:64,h:88,l:'Cửa ra vào'}],pods:[{x:.40,y:.5,w:150,h:56,l:'Bục giảng'}],texts:[],photos:[],seat:{}});
+const def=()=>({theme:'dark',cols:[{n:7},{n:7}],per:4,ratio:'3/4',w:96,names:true,view:0,style:'color',title:'Sơ đồ lớp',showTitle:true,tsize:28,font:'sans',accent:'#4f8cff',bg:'auto',bgs:'solid',txt:'auto',gap:14,groups:defG(),v:3,teacher:{x:.78,y:.5,w:170,h:62},tlabel:'Giáo viên',doors:[{x:.02,y:.5,w:64,h:88,l:'Cửa'}],pods:[{x:.40,y:.5,w:150,h:56,l:'Bục giảng'}],texts:[],photos:[],seat:{}});
 let S=def(),sel=null,vis=new Set();
 // Mức 100% luôn là mức vừa khung: thu nhỏ tối đa đến khi thấy toàn bộ lớp.
 let zoomLevel=1,renderScale=1;
